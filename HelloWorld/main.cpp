@@ -10,6 +10,7 @@
 
 //shader class
 #include "Shader.h"
+#include "circleObject.h"
 
 // GLEW
 #define GLEW_STATIC
@@ -28,7 +29,9 @@ GLuint initCircle();
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 
-void collisionCheck();
+void collisionCheck(circleObject c,GLfloat checkVertex[]);
+
+GLfloat getRand();
 
 GLfloat x=0.0f;
 
@@ -87,14 +90,11 @@ int main()
     
     Shader ourShader("/Users/u40/Desktop/HelloWorld/HelloWorld/vertexShader.txt", "/Users/u40/Desktop/HelloWorld/HelloWorld/fragmentShader.txt");
     
+    circleObject o1(2);
+    
     while ( !glfwWindowShouldClose( window ) )
     {
-        
-        
-        
         glfwPollEvents( );
-        
-        
         
         glClearColor( 0.2f, 0.3f, 0.3f, 1.0f );
         glClear( GL_COLOR_BUFFER_BIT );
@@ -106,22 +106,12 @@ int main()
         glDrawElements(GL_TRIANGLES, platformSize, GL_UNSIGNED_INT, 0);
         glBindVertexArray( 0 );
         
-        if(!caught){
-            GLuint circleSize=initCircle();
-            glBindVertexArray( circleVAO );
-            glDrawArrays(GL_TRIANGLE_FAN, 0, circleSize);
-            glBindVertexArray( 0 );
-        }
-        else
-        {
-            xshift=((rand() % 17)-8)*0.1;
-            yshift=0;
-            caught=false;
-        }
-        collisionCheck();
+        o1.drawObject();
         
-        yshift = changeY(yshift);
+        collisionCheck(o1, o1.circleVertexes);       //circleVertexes
         
+        o1.yshift = changeY(o1.yshift); //yshift
+      
         glfwSwapBuffers( window );
     };
     
@@ -225,18 +215,16 @@ GLfloat changeY(GLfloat y){
     return y;
 }
 
-void collisionCheck(){
-    GLuint k=fragmentCount/4*9;
-    if((circleVertexes[k+1]<-0.9f) && (circleVertexes[k]>platformVertexes[3]) && (circleVertexes[k]<platformVertexes[15]))
-    {
-        glDeleteVertexArrays( 2, &circleVAO );
-        glDeleteBuffers( 2, &circleVBO );
-        for(int i=0;i<fragmentCount*3+2;i++){
-            circleVertexes[i]=0;
-        }
-        caught=true;
-    }
+void collisionCheck(circleObject c,GLfloat checkVertex[]){
+    GLuint k=c.fragmentCount/4*9;
+    if((checkVertex[k+1]<-0.9f) && (checkVertex[k]>platformVertexes[3]) && (checkVertex[k]<platformVertexes[15]))
+        c.collision();
+    
 }
+
+//GLfloat getRand(){
+//    return ((rand() % 17)-8)*0.1;
+//}
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
