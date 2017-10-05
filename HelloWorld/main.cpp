@@ -24,8 +24,10 @@ const GLuint WIDTH = 800, HEIGHT = 600;
 
 GLfloat changeY(GLfloat);
 
-GLuint initPlatform();
-GLuint initCircle();
+void initPlatform();
+void initCircle();
+
+void platformUpgrade();
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 
@@ -49,6 +51,19 @@ GLfloat platformVertexes[27];
 
 GLuint platformEBO,platformVAO,platformVBO;
 GLuint circleVAO, circleVBO;
+
+GLuint platformIndexes[]=
+{
+    0,1,2,
+    1,2,3,
+    2,3,4,
+    3,4,5,
+    4,5,6,
+    //
+    0,7,2,
+    7,2,8,
+    2,8,6
+};
 
 int main()
 {
@@ -92,6 +107,8 @@ int main()
     
     circleObject o1(2);
     
+    initPlatform();
+    
     while ( !glfwWindowShouldClose( window ) )
     {
         glfwPollEvents( );
@@ -101,9 +118,8 @@ int main()
         
         ourShader.Use();
         
-        GLuint platformSize = initPlatform();
         glBindVertexArray( platformVAO );
-        glDrawElements(GL_TRIANGLES, platformSize, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, sizeof(platformIndexes), GL_UNSIGNED_INT, 0);
         glBindVertexArray( 0 );
         
         o1.drawObject();
@@ -111,6 +127,8 @@ int main()
         collisionCheck(o1, o1.circleVertexes);       //circleVertexes
         
         o1.yshift = changeY(o1.yshift); //yshift
+        o1.circleUpgrade();
+
       
         glfwSwapBuffers( window );
     };
@@ -124,66 +142,7 @@ int main()
     return EXIT_SUCCESS;
 }
 
-GLuint initCircle(){
-    int a=0;
-    for (int i=0; i < fragmentCount*3+3; i+=3)
-        //       18<xshift<0
-    {
-        double angle = 2 * 3.14 * a++ / fragmentCount;
-        circleVertexes[i]=xshift+0.1f*round(cos(angle)*100)/100;
-        circleVertexes[i+1]=1.1f+yshift+0.1f*round(sin(angle)*100)/100;
-        circleVertexes[i+2]=0.0f;
-    }
-    
-    
-    glGenBuffers(2, &circleVBO);
-    glGenVertexArrays( 2, &circleVAO );
-    
-    glBindVertexArray( circleVAO );
-    
-    glBindBuffer( GL_ARRAY_BUFFER, circleVBO );
-    glBufferData( GL_ARRAY_BUFFER, sizeof( circleVertexes ), circleVertexes, GL_STREAM_DRAW);
-    
-    glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof( GLfloat ), ( GLvoid * ) 0 );
-    glEnableVertexAttribArray( 0 );
-    
-    glBindBuffer( GL_ARRAY_BUFFER, 0 );
-    
-    glBindVertexArray( 0 );
-    
-    return sizeof(circleVertexes);
-}
-
-GLuint initPlatform(){
-    GLfloat a = -1.0f, b = -1.0f, c=0.1f;
-    for(int i=0;i<21;i+=3){
-        platformVertexes[i]=a+x;
-        a+=0.1f;
-        platformVertexes[i+1]=b+c;
-        c*=-1;
-        platformVertexes[i+2]=0.0f;
-    }
-    
-    platformVertexes[21]=-0.9f+x;
-    platformVertexes[22]=-0.87f;
-    platformVertexes[23]=0.0f;
-    
-    platformVertexes[24]=-0.5f+x;
-    platformVertexes[25]=-0.87f;
-    platformVertexes[26]=0.0f;
-    
-    GLuint platformIndexes[]=
-    {
-        0,1,2,
-        1,2,3,
-        2,3,4,
-        3,4,5,
-        4,5,6,
-        //
-        0,7,2,
-        7,2,8,
-        2,8,6
-    };
+void initPlatform(){
     glGenBuffers(1, &platformVBO);
     glGenBuffers(2, &platformEBO);
     glGenVertexArrays( 1, &platformVAO );
@@ -191,7 +150,7 @@ GLuint initPlatform(){
     glBindVertexArray( platformVAO );
     
     glBindBuffer( GL_ARRAY_BUFFER, platformVBO );
-    glBufferData( GL_ARRAY_BUFFER, sizeof( platformVertexes ), platformVertexes, GL_STREAM_DRAW);
+    glBufferData( GL_ARRAY_BUFFER, sizeof( platformVertexes ), NULL, GL_STREAM_DRAW);
     
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, platformEBO );
     glBufferData( GL_ELEMENT_ARRAY_BUFFER, sizeof( platformIndexes ), platformIndexes, GL_STREAM_DRAW );
@@ -203,7 +162,7 @@ GLuint initPlatform(){
     
     glBindVertexArray( 0 );
     
-    return sizeof(platformIndexes);
+    platformUpgrade();
 }
 
 GLfloat changeY(GLfloat y){
@@ -222,16 +181,41 @@ void collisionCheck(circleObject c,GLfloat checkVertex[]){
     
 }
 
-//GLfloat getRand(){
-//    return ((rand() % 17)-8)*0.1;
-//}
+void platformUpgrade(){
+    GLfloat a = -1.0f, b = -1.0f, c=0.1f;
+    for(int i=0;i<21;i+=3){
+        platformVertexes[i]=a+x;
+        a+=0.1f;
+        platformVertexes[i+1]=b+c;
+        c*=-1;
+        platformVertexes[i+2]=0.0f;
+    }
+    
+    platformVertexes[21]=-0.9f+x;
+    platformVertexes[22]=-0.87f;
+    platformVertexes[23]=0.0f;
+    
+    platformVertexes[24]=-0.5f+x;
+    platformVertexes[25]=-0.87f;
+    platformVertexes[26]=0.0f;
+    
+    glBindBuffer(GL_ARRAY_BUFFER, platformVBO);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(platformVertexes),platformVertexes);      //replace data in VBO with new data
+    glBindBuffer(GL_ARRAY_BUFFER, platformVBO);
+}
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
     if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GL_TRUE);
     if(key == 262 && x<1.35f && (action == GLFW_PRESS || action==GLFW_REPEAT))//right
+    {
         x+=0.05f;
+        platformUpgrade();
+    }
     if(key == 263 && x>0.0f && (action == GLFW_PRESS|| action==GLFW_REPEAT))//left
+    {
         x-=0.05f;
+        platformUpgrade();
+    }
 }
