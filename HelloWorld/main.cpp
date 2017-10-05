@@ -9,8 +9,8 @@
 #include <glm/gtc/type_ptr.hpp>
 
 //shader class
-#include "Shader.h"
-#include "circleObject.h"
+#include "Shader.cpp"
+#include "circleObject.cpp"
 
 // GLEW
 #define GLEW_STATIC
@@ -31,26 +31,13 @@ void platformUpgrade();
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 
-void collisionCheck(circleObject c,GLfloat checkVertex[]);
-
-GLfloat getRand();
-
 GLfloat x=0.0f;
 
 GLdouble oldtime=0;
 
-GLfloat xshift=0.0f;
-GLfloat yshift=0.0f;
-
-GLfloat circleVertexes[363];
-GLuint fragmentCount=120;
-GLboolean caught=true;
-
 GLfloat platformVertexes[27];
 
-
 GLuint platformEBO,platformVAO,platformVBO;
-GLuint circleVAO, circleVBO;
 
 GLuint platformIndexes[]=
 {
@@ -124,12 +111,13 @@ int main()
         
         o1.drawObject();
         
-        collisionCheck(o1, o1.circleVertexes);       //circleVertexes
+        o1.collisionCheck(platformVertexes);       //circleVertexes
         
-        o1.yshift = changeY(o1.yshift); //yshift
+        o1.setY(changeY(o1.getY())); //yshift
         o1.circleUpgrade();
-
-      
+        
+        
+        
         glfwSwapBuffers( window );
     };
     
@@ -172,13 +160,6 @@ GLfloat changeY(GLfloat y){
         oldtime=time;
     }
     return y;
-}
-
-void collisionCheck(circleObject c,GLfloat checkVertex[]){
-    GLuint k=c.fragmentCount/4*9;
-    if((checkVertex[k+1]<-0.9f) && (checkVertex[k]>platformVertexes[3]) && (checkVertex[k]<platformVertexes[15]))
-        c.collision();
-    
 }
 
 void platformUpgrade(){

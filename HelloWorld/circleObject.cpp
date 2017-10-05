@@ -28,9 +28,7 @@
 
 class circleObject
 {
-
     
-public:
     GLuint circleVAO, circleVBO;
     
     GLfloat xshift=0.0f;
@@ -38,6 +36,8 @@ public:
     GLfloat yshift=1.1f;
     GLfloat circleVertexes[363];
     GLuint fragmentCount=120;
+public:
+    
     
     
     circleObject(GLuint k){
@@ -86,15 +86,31 @@ public:
         glBindVertexArray( 0 );
     }
     
-    void collision(){
-        xshift=getRand();
-        yshift=1.1f;
-    }
-    
     GLfloat getRand(){
         return ((rand() % 17)-8)*0.1;
     }
     
+    void collisionCheck(GLfloat platformVertexes[]){
+        GLuint k=fragmentCount/4*9;
+        if((circleVertexes[k+1]<-0.9f) && (circleVertexes[k]>platformVertexes[3]) && (circleVertexes[k]<platformVertexes[15]))
+        {
+            xshift=getRand();
+            yshift=1.1f;
+        }
+        
+    }
+    
+    GLfloat getY(){
+        return yshift;
+    }
+    
+    void setY(GLfloat newY)
+    {
+        yshift=newY;
+    }
+    
+    
 };
 
 #endif /* circleObject_h */
+
