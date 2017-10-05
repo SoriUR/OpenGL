@@ -28,20 +28,17 @@
 
 class circleObject
 {
-    
     GLuint circleVAO, circleVBO;
     
-    GLfloat xshift=0.0f;
+    GLfloat xshift, yshift;;
     GLuint k;
-    GLfloat yshift=1.1f;
     GLfloat circleVertexes[363];
     GLuint fragmentCount=120;
 public:
     
-    
-    
     circleObject(GLuint k){
         xshift=getRand();
+        yshift=1.1f;
         
         this->k=k;
         
@@ -97,7 +94,6 @@ public:
             xshift=getRand();
             yshift=1.1f;
         }
-        
     }
     
     GLfloat getY(){
@@ -107,6 +103,7 @@ public:
     void setY(GLfloat newY)
     {
         yshift=newY;
+        circleUpgrade();
     }
     
     

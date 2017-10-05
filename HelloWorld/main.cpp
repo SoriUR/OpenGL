@@ -22,7 +22,7 @@
 // Window dimensions
 const GLuint WIDTH = 800, HEIGHT = 600;
 
-GLfloat changeY(GLfloat);
+GLfloat timeTracker();
 
 void initPlatform();
 void initCircle();
@@ -110,13 +110,10 @@ int main()
         glBindVertexArray( 0 );
         
         o1.drawObject();
-        
         o1.collisionCheck(platformVertexes);       //circleVertexes
         
-        o1.setY(changeY(o1.getY())); //yshift
-        o1.circleUpgrade();
-        
-        
+        GLfloat step = timeTracker();
+        o1.setY(o1.getY()+step);
         
         glfwSwapBuffers( window );
     };
@@ -153,13 +150,13 @@ void initPlatform(){
     platformUpgrade();
 }
 
-GLfloat changeY(GLfloat y){
+GLfloat timeTracker(){
     GLdouble time = glfwGetTime();
-    if((time-oldtime)>0.100){
-        y-=0.06f;
-        oldtime=time;
-    }
-    return y;
+    if((time-oldtime)<0.100)
+        return 0;
+    oldtime=time;
+    return -0.06;
+    
 }
 
 void platformUpgrade(){
