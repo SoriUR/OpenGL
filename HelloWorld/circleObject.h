@@ -31,7 +31,6 @@ class circleObject
     GLuint circleVAO, circleVBO;
     
     GLfloat xshift=0.0f;
-    GLfloat x;
     GLuint k;
     
 public:
@@ -42,7 +41,6 @@ public:
 
     
     circleObject(GLuint k){
-        x=getRand();
         xshift=getRand();
         this->k=k;
         glGenBuffers(k, &circleVBO);
@@ -50,6 +48,7 @@ public:
     }
     
     void updateVertexes(){
+        int a=0;
         for (int i=0; i < fragmentCount*3+3; i+=3)
         {
             double angle = 2 * 3.14 * a++ / fragmentCount;
@@ -79,12 +78,13 @@ public:
     }
     
     void collision(){
-        glDeleteVertexArrays( k, &circleVAO );
-        glDeleteBuffers( k, &circleVBO );
-        for(int i=0;i<fragmentCount*3+2;i++){
-            circleVertexes[i]=0;
-        }
-        
+//        glDeleteVertexArrays( k, &circleVAO );
+//        glDeleteBuffers( k, &circleVBO );
+//        for(int i=0;i<fragmentCount*3+2;i++){
+//            circleVertexes[i]=0;
+//        }
+        xshift=getRand();
+        yshift=1.1f;
     }
     
     GLfloat getRand(){
