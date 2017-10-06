@@ -32,6 +32,8 @@ void platformUpgrade();
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 
 GLfloat x=0.0f;
+GLfloat speed=-0.01f;
+GLfloat speedDelta=-0.0000005f;
 
 GLdouble oldtime=0;
 
@@ -92,7 +94,8 @@ int main()
     
     Shader ourShader("/Users/u40/Desktop/HelloWorld/HelloWorld/vertexShader.txt", "/Users/u40/Desktop/HelloWorld/HelloWorld/fragmentShader.txt");
     
-    circleObject o1(2);
+    circleObject o1(2, 1.1f);
+    circleObject o2(3, 1.8f);
     
     initPlatform();
     
@@ -110,10 +113,14 @@ int main()
         glBindVertexArray( 0 );
         
         o1.drawObject();
-        o1.collisionCheck(platformVertexes);       //circleVertexes
+        o1.collisionCheck(platformVertexes);
+        
+        o2.drawObject();
+        o2.collisionCheck(platformVertexes);
         
         GLfloat step = timeTracker();
         o1.setY(o1.getY()+step);
+        o2.setY(o2.getY()+step);
         
         glfwSwapBuffers( window );
     };
@@ -152,10 +159,11 @@ void initPlatform(){
 
 GLfloat timeTracker(){
     GLdouble time = glfwGetTime();
-    if((time-oldtime)<0.100)
+    if((time-oldtime)<0.01)
         return 0;
     oldtime=time;
-    return -0.06;
+    speed+=speedDelta;
+    return speed;
     
 }
 
@@ -169,11 +177,11 @@ void platformUpgrade(){
         platformVertexes[i+2]=0.0f;
     }
     
-    platformVertexes[21]=-0.9f+x;
+    platformVertexes[21]=-0.95f+x;
     platformVertexes[22]=-0.87f;
     platformVertexes[23]=0.0f;
     
-    platformVertexes[24]=-0.5f+x;
+    platformVertexes[24]=-0.45f+x;
     platformVertexes[25]=-0.87f;
     platformVertexes[26]=0.0f;
     
@@ -191,7 +199,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         x+=0.05f;
         platformUpgrade();
     }
-    if(key == 263 && x>0.0f && (action == GLFW_PRESS|| action==GLFW_REPEAT))//left
+    if(key == 263 && x>0.05 && (action == GLFW_PRESS|| action==GLFW_REPEAT))//left
     {
         x-=0.05f;
         platformUpgrade();

@@ -36,9 +36,9 @@ class circleObject
     GLuint fragmentCount=120;
 public:
     
-    circleObject(GLuint k){
+    circleObject(GLuint k,GLfloat startY){
         xshift=getRand();
-        yshift=1.1f;
+        yshift=startY;
         
         this->k=k;
         
@@ -63,11 +63,12 @@ public:
     
     void circleUpgrade(){
         int a=0;
+//        yshift+=0.1f;
         for (int i=0; i < (fragmentCount+1)*3; i+=3)
         {
             double angle = 2 * 3.14 * a++ / fragmentCount;
             circleVertexes[i]=xshift+0.1f*round(cos(angle)*100)/100;
-            circleVertexes[i+1]=yshift+0.1f*round(sin(angle)*100)/100;
+            circleVertexes[i+1]=0.5+yshift+0.1f*round(sin(angle)*100)/100;
             circleVertexes[i+2]=0.0f;
         }
         
@@ -89,11 +90,15 @@ public:
     
     void collisionCheck(GLfloat platformVertexes[]){
         GLuint k=fragmentCount/4*9;
-        if((circleVertexes[k+1]<-0.9f) && (circleVertexes[k]>platformVertexes[3]) && (circleVertexes[k]<platformVertexes[15]))
+        if(((circleVertexes[k+1]<-0.9f) && (circleVertexes[k+1]>-1.1f)) && (circleVertexes[k]>platformVertexes[21]) && (circleVertexes[k]<platformVertexes[24]))
         {
             xshift=getRand();
             yshift=1.1f;
+//            glDeleteVertexArrays( k, &circleVAO );
+//            glDeleteBuffers( k, &circleVBO );
+//            return true;
         }
+//        return false;
     }
     
     GLfloat getY(){
