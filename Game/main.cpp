@@ -26,23 +26,29 @@
 // Window dimensions
 const GLuint WIDTH = 800, HEIGHT = 600;
 
-GLfloat timeTracker();
 
 void initPlatform();
 void initBackground();
 void initCircle();
-
+void bgDraw();
+void platformDraw();
 void platformUpgrade();
-
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
+void upgradeScore();
+GLfloat timeTracker();
 
 GLfloat x=0.0f;
 GLfloat speed=-0.01f;
 GLfloat speedDelta=-0.000005f;
-GLboolean isPause=false;
+GLboolean isPause=true;
 GLfloat step;
-
 GLdouble oldtime=0;
+GLuint score=0;
+GLuint misses=0;
+
+GLuint platformEBO,platformVAO,platformVBO;
+GLuint bgVBO, bgVAO, bgEBO;
+GLuint bgTexture, platformTexture;
 
 GLfloat platformVertexes[45]=
 {    //vertex                //tex
@@ -71,10 +77,6 @@ GLuint platformIndexes[]=
     7,2,8,
     2,8,6
 };
-
-GLuint platformEBO,platformVAO,platformVBO;
-GLuint bgVBO, bgVAO, bgEBO;
-GLuint bgTexture, platformTexture;
 
 int main()
 {
@@ -117,17 +119,13 @@ int main()
     
     Shader textureShader("/Users/u40/Desktop/Game/Game/bgVertexShader.txt", "/Users/u40/Desktop/Game/Game/bgFragmentShader.txt");
     
-    
-    circleObject o1(2, 1.1f);
-    circleObject o2(4, 1.8f);
+    circleObject o1(1, 1.1f);
+    circleObject o2(4, 1.9f);
     
     initBackground();
     initPlatform();
     
-    
-    
-    
-    while ( !glfwWindowShouldClose( window ) )
+    while ( !glfwWindowShouldClose( window ) && misses<5 )
     {
         glfwPollEvents();
         
@@ -141,8 +139,33 @@ int main()
         o1.drawObject();
         o2.drawObject();
         
-        o1.collisionCheck(platformVertexes);
-        o2.collisionCheck(platformVertexes);
+//        upgradeScore();
+
+        GLint k;
+        k = o1.collisionCheck(platformVertexes);
+        switch (k) {
+            case 1:
+                score++;
+                break;
+            case -1:
+                misses++;
+                break;
+            default:
+                break;
+        }
+        
+        k = o2.collisionCheck(platformVertexes);
+        switch (k) {
+            case 1:
+                score++;
+                break;
+            case -1:
+                misses++;
+                break;
+            default:
+                break;
+        }
+
         
         if(!isPause){
             step=timeTracker();
@@ -153,6 +176,8 @@ int main()
         glfwSwapBuffers( window );
     };
     
+    o1.deleteBuffers();
+    o2.deleteBuffers();
     glDeleteVertexArrays( 1, &platformVAO );
     glDeleteBuffers( 1, &platformVBO );
     glDeleteBuffers( 1, &platformEBO );
@@ -263,7 +288,7 @@ void initBackground(){
     glGenTextures(3, &bgTexture);
     glBindTexture(GL_TEXTURE_2D, bgTexture);
     int width, height;
-    unsigned char* image = SOIL_load_image("/Users/u40/Desktop/Game/Game/wallTexture2.png", &width, &height, 0, SOIL_LOAD_RGB);
+    unsigned char* image = SOIL_load_image("/Users/u40/Desktop/Game/Game/wallTexture.png", &width, &height, 0, SOIL_LOAD_RGB);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
     glGenerateMipmap(GL_TEXTURE_2D);
     SOIL_free_image_data(image);
@@ -272,7 +297,7 @@ void initBackground(){
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
-    GLfloat shift=0.1f;
+    GLfloat shift=0.15f;
     if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GL_TRUE);
     if(key == 262 && x<1.4f && (action == GLFW_PRESS || action==GLFW_REPEAT))//right
@@ -304,7 +329,10 @@ GLfloat timeTracker(){
         return 0;
     oldtime=time;
     speed+=speedDelta;
-    return speed;
+return speed;
+}
+
+void upgradeScore(){
     
 }
 

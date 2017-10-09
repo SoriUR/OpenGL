@@ -34,8 +34,9 @@ class circleObject
 {
     GLuint circleVAO, circleVBO;
     
-    GLfloat xshift, yshift;
+    GLfloat xshift, yshift=0.f;
     GLuint k;
+    
     GLuint texture;
     GLfloat circleVertexes[605];
     GLuint fragmentCount=120;
@@ -43,7 +44,7 @@ public:
     
     circleObject(GLuint k,GLfloat startY){
         xshift=getRand();
-        yshift=startY;
+        //yshift=startY;
         
         this->k=k;
         
@@ -74,6 +75,7 @@ public:
         SOIL_free_image_data(image);
         glBindTexture(GL_TEXTURE_2D, 0);
 
+        yshift=k*3*0.1;
         circleUpgrade();
         
     }
@@ -84,7 +86,7 @@ public:
         {
             double angle = 2 * 3.14 * a++ / fragmentCount;
             circleVertexes[i]=xshift+0.06f*round(cos(angle)*100)/100;
-            circleVertexes[i+1]=0.5+yshift+0.06f*round(sin(angle)*100)/100;
+            circleVertexes[i+1]=yshift+0.06f*round(sin(angle)*100)/100;
             circleVertexes[i+2]=0.0f;
             
             circleVertexes[i+3]=0.5+0.5f*round(cos(angle)*100)/100;
@@ -109,18 +111,24 @@ public:
         return ((rand() % 17)-8)*0.1;
     }
     
-    void collisionCheck(GLfloat platformVertexes[]){
+    GLint collisionCheck(GLfloat platformVertexes[]){
         GLuint k=fragmentCount/4*9;
         if(((circleVertexes[k+1]<(platformVertexes[36])) && (circleVertexes[k+1]>platformVertexes[1])) //y
            && (circleVertexes[k]>platformVertexes[0]) && (circleVertexes[k]<platformVertexes[30])) //x
         {
             xshift=getRand();
-            yshift=1.1f;
-//            glDeleteVertexArrays( k, &circleVAO );
-//            glDeleteBuffers( k, &circleVBO );
-//            return true;
+            yshift=1.2f;
+            return 1;
+        } 
+        
+        if(circleVertexes[k+1]<-1.2f) //y
+        {
+            xshift=getRand();
+            yshift=2.3f;
+            return -1;
         }
-//        return false;
+        
+        return 0;
     }
     
     GLfloat getY(){
@@ -133,6 +141,10 @@ public:
         circleUpgrade();
     }
     
+    void deleteBuffers(){
+        glDeleteVertexArrays( k, &circleVAO );
+        glDeleteBuffers( k, &circleVBO );
+    }
     
 };
 
