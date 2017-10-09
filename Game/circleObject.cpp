@@ -65,13 +65,8 @@ public:
         
         glBindVertexArray( 0 );
         
-        glGenTextures(1, &texture);
+        glGenTextures(k, &texture);
         glBindTexture(GL_TEXTURE_2D, texture);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-        
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         int width, height;
         unsigned char* image = SOIL_load_image("/Users/u40/Desktop/Game/Game/ballTexture.jpg", &width, &height, 0, SOIL_LOAD_RGB);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
@@ -79,19 +74,17 @@ public:
         SOIL_free_image_data(image);
         glBindTexture(GL_TEXTURE_2D, 0);
 
-        
         circleUpgrade();
         
     }
     
     void circleUpgrade(){
         int a=0;
-//        yshift+=0.1f;
         for (int i=0; i < (fragmentCount+1)*5; i+=5)
         {
             double angle = 2 * 3.14 * a++ / fragmentCount;
-            circleVertexes[i]=xshift+0.1f*round(cos(angle)*100)/100;
-            circleVertexes[i+1]=0.5+yshift+0.1f*round(sin(angle)*100)/100;
+            circleVertexes[i]=xshift+0.06f*round(cos(angle)*100)/100;
+            circleVertexes[i+1]=0.5+yshift+0.06f*round(sin(angle)*100)/100;
             circleVertexes[i+2]=0.0f;
             
             circleVertexes[i+3]=0.5+0.5f*round(cos(angle)*100)/100;
@@ -118,8 +111,8 @@ public:
     
     void collisionCheck(GLfloat platformVertexes[]){
         GLuint k=fragmentCount/4*9;
-        if(((circleVertexes[k+1]<(platformVertexes[25])) && (circleVertexes[k+1]>platformVertexes[1])) //y
-           && (circleVertexes[k]>platformVertexes[21]) && (circleVertexes[k]<platformVertexes[24])) //x
+        if(((circleVertexes[k+1]<(platformVertexes[36])) && (circleVertexes[k+1]>platformVertexes[1])) //y
+           && (circleVertexes[k]>platformVertexes[0]) && (circleVertexes[k]<platformVertexes[30])) //x
         {
             xshift=getRand();
             yshift=1.1f;
