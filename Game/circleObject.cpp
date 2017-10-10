@@ -1,10 +1,3 @@
-//
-//  circleObject.h
-//  HelloWorld
-//
-//  Created by Юрий Сорокин on 05/10/2017.
-//  Copyright © 2017 ITMO University. All rights reserved.
-//
 
 #ifndef circleObject_h
 #define circleObject_h
@@ -42,9 +35,9 @@ class circleObject
     GLuint fragmentCount=120;
 public:
     
-    circleObject(GLuint k,GLfloat startY){
+    circleObject(GLuint k){
+        // 
         xshift=getRand();
-        //yshift=startY;
         
         this->k=k;
         
