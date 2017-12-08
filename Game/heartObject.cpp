@@ -28,7 +28,7 @@
 class heartObject
 {
     GLuint heartVAO, heartVBO, heartEBO;
-
+    
     GLuint k;
     GLfloat xCord,y1,y2,y3,y4,y5;
     
@@ -62,11 +62,6 @@ class heartObject
 public:
     
     heartObject(GLuint k){
-        for(int i=0;i<50;i++){
-            if((i%5)<3)
-            heartVertexes[i]*=0.05;
-        }
-        
         glGenBuffers(k, &heartVBO);
         glGenBuffers(k, &heartEBO);
         glGenVertexArrays( k, &heartVAO );
@@ -88,11 +83,10 @@ public:
         glBindBuffer( GL_ARRAY_BUFFER, 0 );
         
         glBindVertexArray( 0 );
-//
         glGenTextures(k, &texture);
         glBindTexture(GL_TEXTURE_2D, texture);
         int width, height;
-        unsigned char* image = SOIL_load_image("/Users/u40/Desktop/Game/Game/heartTexture.jpg", &width, &height, 0, SOIL_LOAD_RGB);
+        unsigned char* image = SOIL_load_image("/Users/u40/Developer/Game/Game/heartTexture.jpg", &width, &height, 0, SOIL_LOAD_RGB);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
         glGenerateMipmap(GL_TEXTURE_2D);
         SOIL_free_image_data(image);
@@ -103,7 +97,8 @@ public:
     void drawObject(GLfloat a,Shader heartShader){
         heartShader.Use();
         glm::mat4 transform;
-        transform = glm::translate(transform, glm::vec3(a, 0.9f, 0.0f));
+        transform = glm::translate(transform, glm::vec3(a, 0.9, 0.0f));
+        transform = glm::scale(transform, glm::vec3(0.05, 0.05, 0.05));
         GLint transformLoc = glGetUniformLocation(heartShader.Program, "transform");
         glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
         
@@ -113,7 +108,7 @@ public:
         glBindVertexArray( 0 );
         glBindTexture(GL_TEXTURE_2D, 0);
     }
-
+    
     void deleteBuffers(){
         glDeleteVertexArrays( k, &heartVAO );
         glDeleteBuffers( k, &heartVBO );

@@ -15,6 +15,7 @@
 #include "Shader.cpp"
 #include "circleObject.cpp"
 #include "heartObject.cpp"
+#include "platform.cpp"
 
 // GLEW
 #define GLEW_STATIC
@@ -49,48 +50,18 @@ GLfloat speedDelta=-0.000005f;
 GLboolean isPause=true;
 GLfloat step;
 GLdouble oldtime=0;
-GLuint score=0;
 GLuint misses=0;
 
-GLuint platformEBO,platformVAO,platformVBO;
 GLuint bgVBO, bgVAO, bgEBO;
 GLuint shadowVBO, shadowVAO;
 GLuint bgTexture, platformTexture;
-
-GLfloat platformVertexes[]=
-{    //vertex                //tex
-    -1.0f, -0.6f, 0.0f,       1.0f,   0.421f,
-    -0.9f, -0.8f, 0.0f,       0.845f, 1.0f,
-    -0.8f, -0.6f, 0.0f,       0.665f, 0.421f,
-    -0.7f, -0.8f, 0.0f,       0.51f,  1.0f,
-    -0.6f, -0.6f, 0.0f,       0.335f, 0.421f,
-    -0.5f, -0.8f, 0.0f,       0.135f, 1.0f,
-    -0.4f, -0.6f, 0.0f,       0.0f,   0.421f,
-    
-    -0.92f, -0.53f, 0.0f,       0.8f, 0.0f,
-    -0.48f, -0.53f, 0.0f,       0.19f, 0.0f
-    
-};
-
-
-GLuint platformIndexes[]=
-{
-    0,1,2,
-    1,2,3,
-    2,3,4,
-    3,4,5,
-    4,5,6,
-    //
-    0,7,2,
-    7,2,8,
-    2,8,6
-};
+platform * pl;
 
 GLfloat shadowVertexes[]=
 {    //vertex
     -0.5f,  -0.8f, 0.0f,
-    -0.35f, -0.74f, 0.0f,
-    -0.435f, -0.67, 0.0f
+    -0.34f, -0.74f, 0.0f,
+    -0.435f, -0.67f, 0.0f
 };
 
 int main()
@@ -131,20 +102,19 @@ int main()
     }
     
     glViewport( 0, 0, screenWidth, screenHeight );
-    
-    Shader textureShader("/Users/u40/Desktop/Game/Game/textureVertexShader.txt", "/Users/u40/Desktop/Game/Game/textureFragmentShader.txt");
-    Shader heartShader("/Users/u40/Desktop/Game/Game/heartVertexShader.txt", "/Users/u40/Desktop/Game/Game/textureFragmentShader.txt");
-    Shader shadowShader("/Users/u40/Desktop/Game/Game/shadowVertexShader.txt", "/Users/u40/Desktop/Game/Game/fragmentShader.txt");
+
+    Shader heartShader("/Users/u40/Developer/Game/Game/heartVertexShader.txt", "/Users/u40/Developer/Game/Game/textureFragmentShader.txt");
+    Shader textureShader("/Users/u40/Developer/Game/Game/textureVertexShader.txt", "/Users/u40/Developer/Game/Game/textureFragmentShader.txt");
 
    
     
     initBackground();
     heartObject health[5]{{6},{7},{8},{9},{10}};
-    initPlatform();
-        initShadow();
+    platform p;
+    pl=&p;
     
-    circleObject o1(2);
-    circleObject o2(5);
+    circleObject o1(2,pl);
+    circleObject o2(3,pl);
 
     
     while ( !glfwWindowShouldClose( window ) && misses<5 )
@@ -157,59 +127,32 @@ int main()
         textureShader.Use();
         bgDraw();
         
-        GLfloat xXx=-0.925;
+        GLfloat xXx=-0.9;
         for(int a=0;a<(5-misses);a++){
             health[a].drawObject(xXx,heartShader);
-            xXx+=0.125;
+            xXx+=0.12;
         }
         
-        textureShader.Use();
-        platformDraw();
-        shadowShader.Use();
-        shadowDraw();
-        textureShader.Use();
-        o1.drawObject();
-        o2.drawObject();
-
-        GLint k;
-        k = o1.collisionCheck(platformVertexes);
-        switch (k) {
-            case 1:
-                score++;
-                break;
-            case -1:
-                misses++;
-                break;
-            default:
-                break;
-        }
-
-        k = o2.collisionCheck(platformVertexes);
-        switch (k) {
-            case 1:
-                score++;
-                break;
-            case -1:
-                misses++;
-                break;
-            default:
-                break;
-        }
-
-
-        if(!isPause){
+        pl->drawObject(heartShader);
+        o1.drawObject(heartShader);
+        o2.drawObject(heartShader);
+        
+        GLuint res;
+        res = o1.collisionCheck();
+        res += o2.collisionCheck();
+        misses+=res;
+        
+//        if(!isPause){
             step=timeTracker();
-            o1.setY(o1.getY()+step);
-            o2.setY(o2.getY()+step);
-        }
+            o1.moveDown(step);
+            o2.moveDown(step);
+//        }
 
         glfwSwapBuffers( window );
     };
     o1.deleteBuffers();
     o2.deleteBuffers();
-    glDeleteVertexArrays( 1, &platformVAO );
-    glDeleteBuffers( 1, &platformVBO );
-    glDeleteBuffers( 1, &platformEBO );
+
     glDeleteVertexArrays( 3, &bgVAO );
     glDeleteBuffers( 3, &bgVBO );
     glDeleteBuffers( 3, &bgEBO );
@@ -217,58 +160,6 @@ int main()
     glfwTerminate( );
     
     return EXIT_SUCCESS;
-}
-
-void initPlatform(){
-    glGenVertexArrays( 1, &platformVAO );
-    glGenBuffers(1, &platformVBO);
-    glGenBuffers(1, &platformEBO);
-    
-    glBindVertexArray( platformVAO );
-    
-    glBindBuffer( GL_ARRAY_BUFFER, platformVBO );
-    glBufferData( GL_ARRAY_BUFFER, sizeof( platformVertexes ), NULL, GL_STREAM_DRAW);
-    
-    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, platformEBO );
-    glBufferData( GL_ELEMENT_ARRAY_BUFFER, sizeof( platformIndexes ), platformIndexes, GL_STREAM_DRAW );
-    
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
-    glEnableVertexAttribArray(0);
-    
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
-    glEnableVertexAttribArray(1);
-    
-    glBindVertexArray( 0 );
-    
-    glGenTextures(1, &platformTexture);
-    glBindTexture(GL_TEXTURE_2D, platformTexture);
-    int width, height;
-    unsigned char* image = SOIL_load_image("/Users/u40/Desktop/Game/Game/boxTexture.jpg", &width, &height, 0, SOIL_LOAD_RGB);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-    glGenerateMipmap(GL_TEXTURE_2D);
-    SOIL_free_image_data(image);
-    glBindTexture(GL_TEXTURE_2D, 0);
-    
-    for(int i=0;i<41;i+=5)
-        platformVertexes[i]+=x;
-    platformUpgrade(0);
-}
-
-void platformUpgrade(GLfloat a){
-    for(int i=0;i<41;i+=5)
-        platformVertexes[i]+=a;
-    
-    glBindBuffer(GL_ARRAY_BUFFER, platformVBO);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(platformVertexes),platformVertexes);
-    glBindBuffer(GL_ARRAY_BUFFER, platformVBO);
-}
-
-void platformDraw(){
-    glBindTexture(GL_TEXTURE_2D, platformTexture);
-    glBindVertexArray( platformVAO );
-    glDrawElements(GL_TRIANGLES, sizeof(platformIndexes), GL_UNSIGNED_INT, 0);
-    glBindVertexArray( 0 );
-    glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void initBackground(){
@@ -307,7 +198,7 @@ void initBackground(){
     glGenTextures(3, &bgTexture);
     glBindTexture(GL_TEXTURE_2D, bgTexture);
     int width, height;
-    unsigned char* image = SOIL_load_image("/Users/u40/Desktop/Game/Game/wallTexture.png", &width, &height, 0, SOIL_LOAD_RGB);
+    unsigned char* image = SOIL_load_image("/Users/u40/Developer/Game/Game/wallTexture.png", &width, &height, 0, SOIL_LOAD_RGB);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
     glGenerateMipmap(GL_TEXTURE_2D);
     SOIL_free_image_data(image);
@@ -322,42 +213,6 @@ void bgDraw(){
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void initShadow(){
-    glGenVertexArrays( 1, &shadowVAO );
-    glGenBuffers(1, &shadowVBO);
-
-    glBindVertexArray( shadowVAO );
-
-    glBindBuffer( GL_ARRAY_BUFFER, shadowVBO );
-    glBufferData( GL_ARRAY_BUFFER, sizeof( shadowVertexes ), NULL, GL_STREAM_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
-    glEnableVertexAttribArray(0);
-
-    glBindVertexArray( 0 );
-
-    for(int i=0;i<7;i+=3)
-        shadowVertexes[i]+=x;
-
-    shadowUpgrade(0);
-}
-
-void shadowUpgrade(GLfloat a){
-    
-    for(int i=0;i<7;i+=3)
-        shadowVertexes[i]+=a;
-    
-    glBindBuffer(GL_ARRAY_BUFFER, shadowVBO);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(shadowVertexes),shadowVertexes);
-    glBindBuffer(GL_ARRAY_BUFFER, shadowVBO);
-}
-
-void shadowDraw(){
-    glBindVertexArray(shadowVAO);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-    glBindVertexArray(0);
-
-}
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
@@ -366,17 +221,11 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         glfwSetWindowShouldClose(window, GL_TRUE);
     if(key == 262 && (action == GLFW_PRESS || action==GLFW_REPEAT))//right
     {
-        if((platformVertexes[0]+shift)>0.4)
-            shift=0.4-platformVertexes[0];
-        platformUpgrade(shift);
-        shadowUpgrade(shift);
+        pl->Move(shift);
     }
     if(key == 263 && (action == GLFW_PRESS|| action==GLFW_REPEAT))//left
     {
-        if((platformVertexes[0]-shift)<-1)
-            shift=platformVertexes[0]+1;
-        platformUpgrade(-shift);
-        shadowUpgrade(-shift);
+        pl->Move(-shift);
     }
     if(key == GLFW_KEY_SPACE && action == GLFW_PRESS)
         isPause=!isPause;
